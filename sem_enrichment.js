@@ -40,7 +40,7 @@ function parseAdGroup (adGroup) {
 
 
 function process(event) {
-    var query = event.getPage_urlquery();
+    var query = new String(event.getPage_urlquery());
     // test validity - only treat if all utm fields are present
     if (queryObject.adgroup && queryObject.utm_campaign && queryObject.utm_medium && queryObject.utm_source && queryObject.utm_term) {
 		return [ { schema: "iglu:com.goeuro/sem_parameters_context/jsonschema/1-0-0",
