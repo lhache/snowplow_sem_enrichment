@@ -40,11 +40,17 @@ function parseAdGroup (adGroup) {
 
 
 function process(event) {
-    var query = new String(event.getPage_urlquery());
-    // test validity - only treat if all utm fields are present
-    if (queryObject.adgroup && queryObject.utm_campaign && queryObject.utm_medium && queryObject.utm_source && queryObject.utm_term) {
-		return [ { schema: "iglu:com.goeuro/sem_parameters_context/jsonschema/1-0-0",
-               data:  parseAdGroup(queryObject.adgroup)} ];
+    var queryObject = new String(event.getPage_urlquery());
+
+    if (Object.keys(queryObject).length) {
+    	// test validity - only treat if all utm fields are present
+	    if (queryObject.adgroup && queryObject.utm_campaign && queryObject.utm_medium && queryObject.utm_source && queryObject.utm_term) {
+			return [ { schema: "iglu:com.goeuro/sem_parameters_context/jsonschema/1-0-0",
+	               data:  parseAdGroup(queryObject.adgroup)} ];
+	    }
+	    else {
+	    	return [];
+	    }	
     }
     else {
     	return [];
