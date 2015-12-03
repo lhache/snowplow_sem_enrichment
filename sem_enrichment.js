@@ -2,7 +2,7 @@
 function parseQuery(qstr) {
     var query = {},
     	a = qstr.substr(1).split('&');
-	if (qstr === "") {
+	if (qstr != "") {
 		for (var i = 0, j = a.length; i < j; i++) {
         	var b = a[i].split('=');
         	query[decodeURIComponent(b[0])] = decodeURIComponent(b[1] || '');
@@ -37,12 +37,13 @@ function parseAdGroup (adGroup) {
 	    }
 	  }
 	}
-	return data
+	return data;
 }
 
 
 function process(event) {
-    var queryObject = new String(event.getPage_urlquery());
+    var query = new String(event.getPage_urlquery());
+    var queryObject = parseQuery(query);
 
     if (Object.keys(queryObject).length) {
     	// test validity - only treat if all utm fields are present
