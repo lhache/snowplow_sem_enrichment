@@ -1,4 +1,3 @@
-
 function parseQuery(qstr) {
     var query = {},
     	a = qstr.substr(1).split('&');
@@ -40,7 +39,6 @@ function parseAdGroup (adGroup) {
 	return data;
 }
 
-
 function process(event) {
     var query = new String(event.getPage_urlquery());
     var queryObject = parseQuery(query);
@@ -48,8 +46,15 @@ function process(event) {
     if (Object.keys(queryObject).length) {
     	// test validity - only treat if all utm fields are present
 	    if (queryObject.adgroup && queryObject.utm_campaign && queryObject.utm_medium && queryObject.utm_source && queryObject.utm_term) {
-			return [ { schema: "iglu:com.goeuro/sem_parameters_context/jsonschema/1-0-0",
-	               data:  parseAdGroup(queryObject.adgroup)} ];
+    		var schema = parseAdGroup(queryObject.adgroup)};
+    		schema.medium = queryObject.utm_medium;
+    		schema.keywords = queryObject.utm_term;
+    		schema.cost_model = queryObject.utm_source;
+    		schema.campaign_name = queryObject.utm_campaign;
+    		schema.adgroup_name = queryObject.adgroup
+
+			return [ { schema: "iglu:com.goeuro/sem_parameters_context/jsonschema/2-0-0",
+	               data: schema} ];
 	    }
 	    else {
 	    	return [];
