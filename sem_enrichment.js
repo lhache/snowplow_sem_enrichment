@@ -70,7 +70,7 @@ function process(event) {
                     data: schema
                 }];
             } else {
-                return [];
+                throw "SEM enrichment - all utm params in URL but didn't pass size check. data = " + JSON.stringify(schema);
             }
         } else {
             return [];
