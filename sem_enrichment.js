@@ -97,7 +97,7 @@ function process(event) {
                     data: schema
                 }];
             } else {
-                return [];
+                throw "SEM enrichment - url query doesn't contain all utm params - " + query;
             }
         } else {
             return [];
