@@ -1,14 +1,19 @@
-var keys = [
-    ["business_unit", "variation_number", "campaign_type"],
-    ["keyword_codes"],
-    ["departure_name", "departure_position_fk", "departure_country_name"],
-    ["arrival_name", "arrival_position_fk", "arrival_country_name"],
-    ["distance_km"],
-    ["language", "domain"],
-    ["match_type"]
+var adgroupSchema = [
+   "business_unit",
+   "variation_number",
+   "campaign_type",
+   "keyword_codes",
+   "departure_name",
+   "departure_position_fk",
+   "departure_country_name",
+   "arrival_name",
+   "arrival_position_fk",
+   "arrival_country_name",
+   "distance_km",
+   "language",
+   "domain",
+   "match_type"
 ];
-
-var finalKeysSize = 0;
 
 
 function parseQuery(qstr) {
@@ -23,55 +28,70 @@ function parseQuery(qstr) {
     return query;
 }
 
-function parseAdGroup(adGroup) {
-    // fault tolerent data structure
-    var groups = adGroup.split('|'),
-        data = {};
 
-    for (var i = 0, groupLength = groups.length; i < groupLength; i++) {
-        // prevent creating an array if last char is just |
-        if (i !== (groups.length - 1)) {
-            finalKeysSize++;
-
-            // do not split keyword_codes
-            if (i === 1) {
-                data[keys[i][0]] = groups[i].trim();
-            } else {
-                var subGroup = groups[i].trim().split('_');
-                for (var j = 0, subGroupLength = subGroup.length; j < subGroupLength; j++) {
-                    // condition is for trashing other key words because of static struct
-                    j < keys[i].length && (data[keys[i][j]] = subGroup[j].trim());
-                }
-            }
-        }
+function parseAdGroup (adgroup) {
+    var buffer = [];
+    
+    // remove trailing |
+    if (adgroup.substr(-1, 1) === '|') {
+        adgroup = adgroup.substr(0, adgroup.length - 1)
     }
-    return data;
+
+    adgroup.split('|').forEach(function (value, index) {
+        // do not split keywords group
+        if (index === 1) {
+            buffer.push(value);
+        }
+        else {
+            value.split('_').forEach(function (subvalue) {
+                buffer.push(subvalue);
+            });
+        }
+    });
+    return buffer;
+}
+
+function mergeArraysAsKeyValue(keys, values) {
+    var schema = {};
+    for (i = 0; i < keys.length; i++) {
+        schema[keys[i]] = values[i];
+    }   
+    return schema;
 }
 
 // TODO refactor
 function process(event) {
+    
     var query = new String(event.getPage_urlquery());
     var queryObject = parseQuery(query);
+    //var queryObject = parseQuery(event);
 
     if (Object.keys(queryObject).length) {
         // test validity - only treat if all utm fields are present
         if (queryObject.adgroup && queryObject.utm_campaign && queryObject.utm_medium && queryObject.utm_source && queryObject.utm_term) {
-            var schema = parseAdGroup(queryObject.adgroup);
-            // basic size check
-            if (keys.length === finalKeysSize) {
-                schema.medium = queryObject.utm_medium;
-                schema.keywords = queryObject.utm_term;
-                schema.cost_model = queryObject.utm_source;
-                schema.campaign_name = queryObject.utm_campaign;
-                schema.adgroup_name = queryObject.adgroup
+ 
+            var parsedAdgroup = parseAdGroup(queryObject.adgroup.trim());
 
-                return [{
-                    schema: "iglu:com.goeuro/sem_parameters_context/jsonschema/2-0-1",
-                    data: schema
-                }];
-            } else {
-                throw "SEM enrichment - all utm params in URL but didn't pass size check. data = " + JSON.stringify(schema);
+            if (parsedAdgroup.length !== 14) {
+                throw "SEM enrichment - adgroup didn't pass size check - " + queryObject.adgroup;
             }
+
+            //([a, b, ...rest]) => ([[a, ...rest], b])
+
+            var schema = Object.assign({}, {
+                medium: queryObject.utm_medium,
+                keywords: queryObject.utm_term,
+                cost_model: queryObject.utm_source,
+                campaign_name: queryObject.utm_campaign,
+                adgroup_name: queryObject.adgroup
+            }, mergeArraysAsKeyValue(adgroupSchema, parsedAdgroup));
+
+            console.log(schema);
+
+            return [{
+                schema: "iglu:com.goeuro/sem_parameters_context/jsonschema/2-0-1",
+                data: schema
+            }];
         } else {
             return [];
         }
@@ -79,3 +99,4 @@ function process(event) {
         return [];
     }
 }
+

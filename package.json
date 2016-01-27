@@ -1,0 +1,22 @@
+{
+  "name": "snowplow_sem_enrichment",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sem_enrichment.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lhache/snowplow_sem_enrichment.git"
+  },
+  "author": "lhache",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lhache/snowplow_sem_enrichment/issues"
+  },
+  "homepage": "https://github.com/lhache/snowplow_sem_enrichment#readme",
+  "dependencies": {
+    "webpack": "^1.12.12"
+  }
+}
