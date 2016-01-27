@@ -31,7 +31,7 @@ function parseQuery(qstr) {
 
 function parseAdGroup (adgroup) {
     var buffer = [];
-    
+
     // remove trailing |
     if (adgroup.substr(-1, 1) === '|') {
         adgroup = adgroup.substr(0, adgroup.length - 1)
@@ -61,42 +61,49 @@ function mergeArraysAsKeyValue(keys, values) {
 
 // TODO refactor
 function process(event) {
-    
-    var query = new String(event.getPage_urlquery());
-    var queryObject = parseQuery(query);
-    //var queryObject = parseQuery(event);
+    var appId = new String(event.getApp_id());
+    // var appId = "qa14-goeuro-de";
 
-    if (Object.keys(queryObject).length) {
-        // test validity - only treat if all utm fields are present
-        if (queryObject.adgroup && queryObject.utm_campaign && queryObject.utm_medium && queryObject.utm_source && queryObject.utm_term) {
- 
-            var parsedAdgroup = parseAdGroup(queryObject.adgroup.trim());
+    if (/qa/.test(appId)) {
+        var query = new String(event.getPage_urlquery());
+        var queryObject = parseQuery(query);
 
-            if (parsedAdgroup.length !== 14) {
-                throw "SEM enrichment - adgroup didn't pass size check - " + queryObject.adgroup;
+        //var queryObject = parseQuery(event);
+
+        if (Object.keys(queryObject).length) {
+            // test validity - only treat if all utm fields are present
+            if (queryObject.adgroup && queryObject.utm_campaign && queryObject.utm_medium && queryObject.utm_source && queryObject.utm_term) {
+     
+                var parsedAdgroup = parseAdGroup(queryObject.adgroup.trim());
+
+                if (parsedAdgroup.length !== 14) {
+                    throw "SEM enrichment - adgroup didn't pass size check - " + queryObject.adgroup;
+                }
+
+                //([a, b, ...rest]) => ([[a, ...rest], b])
+
+                var schema = Object.assign({}, {
+                    medium: queryObject.utm_source,
+                    keywords: queryObject.utm_term,
+                    cost_model: queryObject.utm_medium,
+                    campaign_name: queryObject.utm_campaign,
+                    adgroup_name: queryObject.adgroup
+                }, mergeArraysAsKeyValue(adgroupSchema, parsedAdgroup));
+
+                console.log(schema);
+
+                return [{
+                    schema: "iglu:com.goeuro/sem_parameters_context/jsonschema/2-0-1",
+                    data: schema
+                }];
+            } else {
+                return [];
             }
-
-            //([a, b, ...rest]) => ([[a, ...rest], b])
-
-            var schema = Object.assign({}, {
-                medium: queryObject.utm_medium,
-                keywords: queryObject.utm_term,
-                cost_model: queryObject.utm_source,
-                campaign_name: queryObject.utm_campaign,
-                adgroup_name: queryObject.adgroup
-            }, mergeArraysAsKeyValue(adgroupSchema, parsedAdgroup));
-
-            console.log(schema);
-
-            return [{
-                schema: "iglu:com.goeuro/sem_parameters_context/jsonschema/2-0-1",
-                data: schema
-            }];
         } else {
             return [];
         }
     } else {
         return [];
-    }
+    }   
 }
 
