@@ -65,13 +65,13 @@ function process(event) {
             if (parsedAdgroup.length !== 14) {
                 throw "SEM enrichment - adgroup didn't pass size check - " + queryObject.adgroup;
             }
-            var schema = Object.assign({}, {
-                medium: queryObject.utm_source,
-                keywords: queryObject.utm_term,
-                cost_model: queryObject.utm_medium,
-                campaign_name: queryObject.utm_campaign,
-                adgroup_name: queryObject.adgroup
-            }, mergeArraysAsKeyValue(adgroupSchema, parsedAdgroup));
+            var schema = mergeArraysAsKeyValue(adgroupSchema, parsedAdgroup);
+            schema.medium = queryObject.utm_source;
+            schema.keywords = queryObject.utm_term;
+            schema.cost_model = queryObject.utm_medium;
+            schema.campaign_name = queryObject.utm_campaign;
+            schema.adgroup_name = queryObject.adgroup;
+
 
             return [{
                 schema: "iglu:com.goeuro/sem_parameters_context/jsonschema/2-0-1",
